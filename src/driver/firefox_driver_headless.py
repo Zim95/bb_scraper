@@ -31,5 +31,5 @@ class SeleniumWebDriver(BaseWebDriver):
 
     def getOptions(self):
         options = Options()
-        options.headless = True
+        options.headless = False
         return options
