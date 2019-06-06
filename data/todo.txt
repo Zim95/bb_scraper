@@ -1,0 +1,5 @@
+1. Change image url on all urls
+2. Set product link to empty
+3. Change currency to USD
+4. Convert Price to USD
+5. Properly convert label in category_trees

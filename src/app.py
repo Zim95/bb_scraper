@@ -29,9 +29,15 @@ DEFAULT_ITEM_COUNT = 20
 
 
 def read_from_file():
-    with open('../data/all_urls.json', 'r') as f:
+    with open('../data/modified_urls.json', 'r') as f:
         lines = f.readlines()
     return lines
+
+
+def write_to_file(dictionary):
+    with open('../data/modified_data4.json', 'a') as f:
+        f.write(json.dumps(dictionary)+"\n")
+    return
 
 
 def get_offer(driver, div_for_offer):
@@ -80,6 +86,7 @@ def get_currency_price(item):
 
 def scrape():
     lines = read_from_file()
+    item_id_start = 83
 
     for line in lines:
 
@@ -118,59 +125,102 @@ def scrape():
         all_item_divs = item_div.find_elements_by_xpath(
             './/following-sibling::div[contains(@class, "item")]')
 
+        if len(all_item_divs) > 8:
+            all_item_divs = all_item_divs[:8]
+
         for item in all_item_divs:
-            link_to_main_page = get_link_to_main_page(item)
-            small_image = get_small_image_source(item)
-            brand, name = get_brand_name(item)
-            price = get_currency_price(item)
-            print(price)
+            try:
+                brand, name = get_brand_name(item)
+                link_to_main_page = get_link_to_main_page(item)
+                small_image = get_small_image_source(item)
 
-            item_dict = {
-                'title': name,
-                'images': {
-                    'small_image': small_image,
-                    'thumbnail': small_image,
-                    'featured_image': small_image,
-                },
-                'brand': brand,
-                'category_trees': [
-                    {
-                        'label': '{}/{}/{} {}'.format(
-                            primary_category,
-                            sub_category,
-                            label,
-                            name
-                        ),
-                        'is_primary': True
-                    }
-                ],
-                "item_type": "parent",
-                "parent_id": 0,
-                "visibility": {
-                    "visible_in_catalog": True,
-                    "visible_in_search": True
-                },
-                "in_stock": 1,
-                "product_links": [link_to_main_page],
-                "product_attributes": [],
-                "accessories": {},
-                "features": {},
-                "product_services": {},
-                "reviews": [],
-                "associated_item_ids": [],
-                "manufacturer": "",
-                "tags": [],
-                "sku": "",
-                "classification": "",
-                "price": price
-            }
+                item_dict = {
+                    'item_id': str(item_id_start),
+                    'title': name,
+                    'images': {
+                        'small_image': small_image,
+                        'thumbnail': small_image,
+                        'featured_image': small_image,
+                    },
+                    'brand': brand,
+                    'manufacturer': '',
+                    'category_trees': [
+                        {
+                            'label': '{}/{}/{} {}'.format(
+                                primary_category,
+                                sub_category,
+                                label,
+                                name
+                            ),
+                            'is_primary': True
+                        }
+                    ],
+                    "item_type": "parent",
+                    "parent_id": 0,
+                    "visibility": {
+                        "visible_in_catalog": True,
+                        "visible_in_search": True
+                    },
+                    "in_stock": 1,
+                    "product_links": [link_to_main_page],
+                    "product_attributes": [],
+                    "accessories": {},
+                    "features": {},
+                    "product_services": {},
+                    "reviews": [],
+                    "associated_item_ids": [],
+                    "manufacturer": "",
+                    "tags": [],
+                    "sku": "",
+                    "classification": "",
+                    "rating": ""
+                }
 
-            # driver.get(link_to_main_page)
-            print(item_dict)
+                driver_obj2 = firefox_driver_headless.SeleniumWebDriver()
+                driver2 = driver_obj2.driver
+                driver2.get(url)
+                driver2.get(link_to_main_page)
+
+                # wait for something to load
+                base_image_tag = WebDriverWait(driver2, 10).until(
+                    EC.presence_of_element_located(
+                        (
+                            By.XPATH,
+                            "/html/body/div[1]/div/div[2]/div[2]/div[2]/div[1]/div/div/img"
+                        )
+                    )
+                )
+                base_image = base_image_tag.get_attribute('src')
+
+                price_tag = driver2.find_element_by_xpath(
+                    "/html/body/div[1]/div/div[2]/div[2]/div[3]/div[1]/div/div/div/table/tbody/tr[1]/td[2]"
+                ).text
+                
+                price = float(price_tag.split(" ")[1])
+                currency = price_tag.split(" ")[0]
+
+                long_description = driver2.find_element_by_xpath(
+                    "/html/body/div[1]/div/div[2]/div[2]/div[3]/div[1]/h1"
+                ).text
+
+                if 'Combo' in long_description or 'combo' in long_description or '+' in long_description:
+                    continue
+                item_dict['price'] = price
+                item_dict['currency'] = currency
+                item_dict['images']['base_image'] = base_image
+                item_dict['long_description'] = long_description
+                item_dict['short_description'] = long_description
+
+                write_to_file(item_dict)
+
+                driver2.quit()
+
+                item_id_start = item_id_start + 1
+            except Exception:
+                item_id_start = item_id_start + 1
+                continue
 
         driver.quit()
-
-        return
 
 
 def main():

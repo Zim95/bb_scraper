@@ -23,6 +23,19 @@ wheels/
 *.egg-info/
 .installed.cfg
 *.egg
+*.json
+*.csv
+*.swp
+
+# Data files
+data/erosnow_scraper/*.json
+data/erosnow_scraper/*.csv
+images/
+miami_data/
+mobile_images/
+apparel_images/
+accessories_apparel_images/
+
 MANIFEST
 
 # PyInstaller

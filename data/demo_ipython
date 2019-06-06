@@ -1,0 +1,9 @@
+/html/body/c-wiz[2]/div/div[2]/div[2]/div/main/c-wiz/div[1]/
+/html/body/c-wiz[2]/div/div[2]/div[2]/div/main/c-wiz/div[1]/div[3]/div/article/div[2]/div/a
+
+
+div[2]/div/article/div[2]/div/a
+
+Item_div = /html/body/c-wiz[2]/div/div[2]/div[2]/div/main/c-wiz/div[1]
+Item_list = .//div
+Source = .//div/article/div[2]/div/a
